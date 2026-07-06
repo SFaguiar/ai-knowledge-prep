@@ -1,0 +1,73 @@
+[project]
+name = "ai-knowledge-prep"
+version = "0.1.0"
+description = "Suíte FOSS local para transformar PDFs, e-books, imagens, áudio e vídeo em fontes limpas para IA (NotebookLM, ChatGPT, Claude, Gemini)."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "AI Knowledge Prep Suite contributors" }]
+keywords = ["pdf", "ocr", "epub", "markdown", "transcription", "llm", "notebooklm", "foss", "offline"]
+
+# --- Dependências mínimas para o MVP (Etapas 1 e 2) ---
+# O objetivo é manter a instalação leve. Backends pesados (Docling, Marker,
+# MinerU, faster-whisper) ficam em grupos opcionais para não pesar no MVP.
+dependencies = [
+    "PySide6>=6.6",
+    "PyMuPDF>=1.24",
+    "pypdf>=4.2",
+    "pikepdf>=8.0",
+]
+
+[project.optional-dependencies]
+# Extração de documentos para IA (Etapas 3, 4 e 8).
+docs = [
+    "pymupdf4llm>=0.0.9",
+    "markitdown>=0.0.1",
+    "ebooklib>=0.18",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "markdownify>=0.12",
+]
+# Backends documentais avançados (opcionais / experimentais).
+docs-advanced = [
+    "docling>=1.0",
+    "marker-pdf>=0.2",
+]
+# OCR (Etapa 5) — além dos binários externos (Tesseract, Ghostscript, qpdf).
+ocr = [
+    "ocrmypdf>=16.0",
+]
+# Transcrição de áudio/vídeo (Etapa 6) — além do FFmpeg externo.
+media = [
+    "faster-whisper>=1.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-qt>=4.4",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+ai-knowledge-prep = "app.main:main"
+
+[project.urls]
+Homepage = "https://github.com/samuel/ai-knowledge-prep"
+Repository = "https://github.com/samuel/ai-knowledge-prep"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["app/tests"]
+qt_api = "pyside6"

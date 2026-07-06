@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Ferramentas
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Dados locais do app (nunca versionar conteúdo do usuário)
+*.log
+/tmp_ai_prep/
+.ai_knowledge_prep/
+
+# IDE / SO
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
