@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 
 from app.services.pdf_render_service import PdfRenderService
 from app.services.pdf_service import PageRef
+from app.ui.theme import ACCENT, ACCENT_SOFT, BG_ELEVATED, BG_ELEVATED_HOVER, BORDER, TEXT_MUTED, TEXT_SECONDARY
 
 _COLUMNS = 4
 _THUMB_DIM = 200
@@ -78,12 +79,12 @@ class PageThumbnail(QFrame):
         self.image = QLabel("carregando…")
         self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image.setFixedHeight(_THUMB_DIM)
-        self.image.setStyleSheet("color:#aaa;")
+        self.image.setStyleSheet(f"color:{TEXT_MUTED}; border: none;")
 
         # Rótulo: posição atual (1-based) e página original.
         self.caption = QLabel(f"#{position + 1}  ·  orig. p.{pref.source_index + 1}")
         self.caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.caption.setStyleSheet("font-size: 11px; color:#555;")
+        self.caption.setStyleSheet(f"font-size: 11px; color:{TEXT_SECONDARY}; border: none;")
 
         layout.addWidget(self.image)
         layout.addWidget(self.caption)
@@ -115,13 +116,14 @@ class PageThumbnail(QFrame):
     def _apply_style(self) -> None:
         if self._selected:
             self.setStyleSheet(
-                "#thumb { background:#e8f0fe; border:2px solid #4c8bf5;"
-                " border-radius:8px; }"
+                f"#thumb {{ background:{ACCENT_SOFT}; border:2px solid {ACCENT};"
+                f" border-radius:10px; }}"
             )
         else:
             self.setStyleSheet(
-                "#thumb { background:#ffffff; border:1px solid #dcdcdc;"
-                " border-radius:8px; }"
+                f"#thumb {{ background:{BG_ELEVATED}; border:1px solid {BORDER};"
+                f" border-radius:10px; }}"
+                f"#thumb:hover {{ background:{BG_ELEVATED_HOVER}; }}"
             )
 
 

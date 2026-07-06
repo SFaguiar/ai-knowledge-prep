@@ -13,6 +13,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
+    QFrame,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -34,6 +35,7 @@ from app.services import pdf_service
 from app.services.pdf_render_service import PdfRenderService
 from app.services.pdf_service import PdfDocumentModel
 from app.ui.components.thumbnail_grid import ThumbnailGrid
+from app.ui.theme import BORDER_STRONG
 
 logger = get_logger(__name__)
 
@@ -76,36 +78,57 @@ class PdfCleanerView(QWidget):
     # --- construção da UI ---
     def _build_ui(self) -> None:
         root = QVBoxLayout(self)
-        root.setContentsMargins(16, 14, 16, 14)
+        root.setContentsMargins(24, 20, 24, 20)
+        root.setSpacing(12)
 
         header = QLabel("Limpar PDF")
-        header.setStyleSheet("font-size: 20px; font-weight: 700;")
+        header.setProperty("cssClass", "heading")
         root.addWidget(header)
 
-        # Barra de ações
-        bar = QHBoxLayout()
-        self.btn_open = self._btn("Abrir PDF", self.open_pdf)
-        self.btn_add = self._btn("Juntar PDF…", self.merge_pdf)
-        self.btn_rot_l = self._btn("Girar ⟲", lambda: self.rotate(-90))
-        self.btn_rot_r = self._btn("Girar ⟳", lambda: self.rotate(90))
-        self.btn_remove = self._btn("Remover sel.", self.remove_selected)
-        self.btn_extract = self._btn("Extrair sel.", self.extract_selected)
-        self.btn_range = self._btn("Selecionar intervalo…", self.select_range)
-        self.btn_blank = self._btn("Detectar em branco", self.detect_blanks)
-        self.btn_split = self._btn("Dividir…", self.split_pdf)
-        self.btn_undo = self._btn("Desfazer", self.undo)
-        self.btn_redo = self._btn("Refazer", self.redo)
-        self.btn_save = self._btn("Salvar como…", self.save_as)
-        for b in (self.btn_open, self.btn_add, self.btn_rot_l, self.btn_rot_r,
-                  self.btn_remove, self.btn_extract, self.btn_range, self.btn_blank,
-                  self.btn_split, self.btn_undo, self.btn_redo):
-            bar.addWidget(b)
-        bar.addStretch(1)
-        bar.addWidget(self.btn_save)
-        root.addLayout(bar)
+        # Barra de ações em duas linhas, agrupadas por tipo de operação — evita
+        # que muitos botões espremidos numa única linha cortem o texto quando
+        # a janela não é muito larga.
+        row1 = QHBoxLayout()
+        row1.setSpacing(8)
+        self.btn_open = self._btn("📂 Abrir PDF", self.open_pdf)
+        self.btn_add = self._btn("➕ Juntar PDF…", self.merge_pdf)
+        row1.addWidget(self.btn_open)
+        row1.addWidget(self.btn_add)
+        row1.addWidget(self._divider())
+
+        self.btn_range = self._btn("▤ Intervalo…", self.select_range)
+        self.btn_blank = self._btn("👁 Detectar brancas", self.detect_blanks)
+        row1.addWidget(self.btn_range)
+        row1.addWidget(self.btn_blank)
+
+        row1.addStretch(1)
+        self.btn_save = self._btn("💾 Salvar como…", self.save_as, "primary")
+        row1.addWidget(self.btn_save)
+        root.addLayout(row1)
+
+        row2 = QHBoxLayout()
+        row2.setSpacing(8)
+        self.btn_rot_l = self._btn("⟲ Girar", lambda: self.rotate(-90))
+        self.btn_rot_r = self._btn("⟳ Girar", lambda: self.rotate(90))
+        self.btn_remove = self._btn("🗑 Remover sel.", self.remove_selected, "danger")
+        self.btn_extract = self._btn("✂ Extrair sel.", self.extract_selected)
+        self.btn_split = self._btn("◫ Dividir…", self.split_pdf)
+        row2.addWidget(self.btn_rot_l)
+        row2.addWidget(self.btn_rot_r)
+        row2.addWidget(self.btn_remove)
+        row2.addWidget(self.btn_extract)
+        row2.addWidget(self.btn_split)
+        row2.addWidget(self._divider())
+
+        self.btn_undo = self._btn("↶ Desfazer", self.undo)
+        self.btn_redo = self._btn("↷ Refazer", self.redo)
+        row2.addWidget(self.btn_undo)
+        row2.addWidget(self.btn_redo)
+        row2.addStretch(1)
+        root.addLayout(row2)
 
         self.info = QLabel("Abra um PDF ou arraste um arquivo para esta janela.")
-        self.info.setStyleSheet("color:#555; font-size:13px;")
+        self.info.setProperty("cssClass", "info")
         root.addWidget(self.info)
 
         self.grid = ThumbnailGrid(self.render_service)
@@ -117,15 +140,25 @@ class PdfCleanerView(QWidget):
         root.addWidget(self.progress)
 
         self.log = QPlainTextEdit()
+        self.log.setProperty("cssClass", "console")
         self.log.setReadOnly(True)
         self.log.setFixedHeight(90)
         self.log.setPlaceholderText("Registro de operações…")
         root.addWidget(self.log)
 
-    def _btn(self, text: str, slot) -> QPushButton:
+    def _btn(self, text: str, slot, css_class: str = "") -> QPushButton:
         b = QPushButton(text)
         b.clicked.connect(slot)
+        if css_class:
+            b.setProperty("cssClass", css_class)
         return b
+
+    def _divider(self) -> QFrame:
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.VLine)
+        line.setFixedHeight(24)
+        line.setStyleSheet(f"color: {BORDER_STRONG};")
+        return line
 
     def _wire_jobs(self) -> None:
         self.job_manager.job_progress.connect(self._on_progress)

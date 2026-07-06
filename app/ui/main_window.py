@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -34,14 +35,14 @@ from app.ui.transcription_view import TranscriptionView
 
 # (título da tarefa, subtítulo)
 NAV_ITEMS = [
-    ("🏠  Início", "home"),
-    ("✂️  Limpar PDF", "pdf_cleaner"),
-    ("📄  Documento para IA", "document_prep"),
-    ("🔎  OCR", "ocr"),
-    ("🎙️  Transcrever áudio/vídeo", "transcription"),
-    ("📚  Lote", "batch"),
-    ("🕘  Histórico", "history"),
-    ("⚙️  Configurações", "settings"),
+    ("🏠   Início", "home"),
+    ("✂️   Limpar PDF", "pdf_cleaner"),
+    ("📄   Documento para IA", "document_prep"),
+    ("🔎   OCR", "ocr"),
+    ("🎙️   Transcrever áudio/vídeo", "transcription"),
+    ("📚   Lote", "batch"),
+    ("🕘   Histórico", "history"),
+    ("⚙️   Configurações", "settings"),
 ]
 
 
@@ -64,30 +65,46 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # --- barra lateral de navegação ---
+        # --- barra lateral: marca + navegação ---
+        sidebar = QWidget()
+        sidebar.setFixedWidth(248)
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.setSpacing(0)
+
+        brand = QLabel("AI Knowledge\nPrep Suite")
+        brand.setProperty("cssClass", "sectionTitle")
+        brand.setStyleSheet("padding: 20px 20px 4px 20px;")
+        brand_sub = QLabel("Local-first • Offline")
+        brand_sub.setProperty("cssClass", "caption")
+        brand_sub.setStyleSheet("padding: 0 20px 16px 20px;")
+
         self.nav = QListWidget()
-        self.nav.setFixedWidth(240)
         self.nav.setObjectName("nav")
+        self.nav.setFrameShape(QFrame.Shape.NoFrame)
         for label, key in NAV_ITEMS:
             item = QListWidgetItem(label)
             item.setData(Qt.ItemDataRole.UserRole, key)
             self.nav.addItem(item)
         self.nav.currentRowChanged.connect(self._on_nav_changed)
 
+        sidebar_layout.addWidget(brand)
+        sidebar_layout.addWidget(brand_sub)
+        sidebar_layout.addWidget(self.nav, 1)
+
         # --- pilha de conteúdo ---
         self.stack = QStackedWidget()
 
         self._register_views()
 
-        layout.addWidget(self.nav)
+        layout.addWidget(sidebar)
         layout.addWidget(self.stack, 1)
         self.setCentralWidget(central)
 
         status = QStatusBar()
-        status.addWidget(QLabel("Local-first • Offline • Sem telemetria"))
+        status.addWidget(QLabel("🔒 Local-first  •  Offline  •  Sem telemetria"))
         self.setStatusBar(status)
 
-        self.setStyleSheet(_STYLESHEET)
         self.nav.setCurrentRow(0)
 
     def _register_views(self) -> None:
@@ -132,27 +149,3 @@ class MainWindow(QMainWindow):
         self.render_service.close_all()
         self.job_manager.wait_for_done(2000)
         super().closeEvent(event)
-
-
-_STYLESHEET = """
-QListWidget#nav {
-    background: #1f2430;
-    color: #e6e6e6;
-    border: none;
-    padding-top: 12px;
-    font-size: 14px;
-    outline: 0;
-}
-QListWidget#nav::item {
-    padding: 12px 18px;
-    border: none;
-}
-QListWidget#nav::item:selected {
-    background: #2f3646;
-    color: #ffffff;
-    border-left: 3px solid #4c8bf5;
-}
-QListWidget#nav::item:hover {
-    background: #272d3a;
-}
-"""

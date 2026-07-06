@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QObject, QRunnable, Qt, QThreadPool, Signal
 from PySide6.QtWidgets import (
+    QFrame,
     QLabel,
     QPushButton,
     QScrollArea,
@@ -23,12 +24,13 @@ from app.infrastructure.dependency_checker import (
     check_all,
 )
 from app.infrastructure.settings import Settings
+from app.ui.theme import DANGER, SUCCESS, TEXT_MUTED, WARNING
 
-_BADGE = {
-    Criticality.REQUIRED: ("#d9534f", "#fff"),
-    Criticality.RECOMMENDED: ("#f0ad4e", "#fff"),
-    Criticality.OPTIONAL: ("#5bc0de", "#fff"),
-    Criticality.EXPERIMENTAL: ("#777", "#fff"),
+_CRIT_COLOR = {
+    Criticality.REQUIRED: DANGER,
+    Criticality.RECOMMENDED: WARNING,
+    Criticality.OPTIONAL: "#5bc0de",
+    Criticality.EXPERIMENTAL: TEXT_MUTED,
 }
 
 
@@ -52,10 +54,11 @@ class SettingsView(QWidget):
         self.settings = settings
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(28, 24, 28, 24)
+        outer.setContentsMargins(32, 28, 32, 28)
+        outer.setSpacing(8)
 
         header = QLabel("Configurações & Dependências")
-        header.setStyleSheet("font-size: 22px; font-weight: 700;")
+        header.setProperty("cssClass", "heading")
         outer.addWidget(header)
 
         info = QLabel(
@@ -63,12 +66,15 @@ class SettingsView(QWidget):
             f"Idioma transcrição: {settings.default_transcription_language}  •  "
             f"Telemetria: {'desativada' if not settings.telemetry_enabled else 'ATIVA'}"
         )
-        info.setStyleSheet("color: #666; font-size: 13px;")
+        info.setProperty("cssClass", "subtitle")
         outer.addWidget(info)
 
-        self.refresh_btn = QPushButton("Verificar dependências")
+        self.refresh_btn = QPushButton("🔄  Verificar dependências")
+        self.refresh_btn.setProperty("cssClass", "primary")
         self.refresh_btn.clicked.connect(self.refresh)
+        outer.addSpacing(4)
         outer.addWidget(self.refresh_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        outer.addSpacing(8)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -109,34 +115,43 @@ class SettingsView(QWidget):
                 w.deleteLater()
 
     def _build_group(self, report: ModuleReport) -> QWidget:
-        box = QWidget()
-        layout = QVBoxLayout(box)
-        layout.setContentsMargins(0, 8, 0, 8)
+        card = QFrame()
+        card.setProperty("cssClass", "card")
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(18, 14, 18, 14)
+        layout.setSpacing(4)
 
         status_icon = "✅" if report.ok else "⚠️"
         title = QLabel(f"{status_icon}  {report.module_group}")
-        title.setStyleSheet("font-size: 16px; font-weight: 600; margin-top: 6px;")
+        title.setProperty("cssClass", "sectionTitle")
         layout.addWidget(title)
+        layout.addSpacing(4)
 
         for status in report.statuses:
             layout.addWidget(self._build_row(status))
-        return box
+
+        wrapper = QWidget()
+        wrapper_layout = QVBoxLayout(wrapper)
+        wrapper_layout.setContentsMargins(0, 0, 0, 14)
+        wrapper_layout.addWidget(card)
+        return wrapper
 
     def _build_row(self, status: DependencyStatus) -> QWidget:
         row = QWidget()
         layout = QVBoxLayout(row)
-        layout.setContentsMargins(14, 2, 4, 2)
+        layout.setContentsMargins(6, 6, 4, 6)
         layout.setSpacing(0)
 
+        dot_color = SUCCESS if status.available else _CRIT_COLOR[status.spec.criticality]
         mark = "OK" if status.available else "Ausente"
-        color = "#2e7d32" if status.available else "#b71c1c"
         crit = status.spec.criticality.value
 
         line = QLabel(
-            f"<span style='color:{color}; font-weight:600'>[{mark}]</span> "
-            f"{status.spec.display_name} "
-            f"<span style='color:#999'>· {crit}</span>"
-            + (f"  <span style='color:#888'>({status.version})</span>"
+            f"<span style='color:{dot_color}; font-weight:700'>●</span>  "
+            f"<b>{status.spec.display_name}</b> "
+            f"<span style='color:{dot_color}'>{mark}</span> "
+            f"<span style='color:{TEXT_MUTED}'>· {crit}</span>"
+            + (f"  <span style='color:{TEXT_MUTED}'>({status.version})</span>"
                if status.version else "")
         )
         line.setTextFormat(Qt.TextFormat.RichText)
@@ -144,6 +159,7 @@ class SettingsView(QWidget):
 
         if status.spec.notes and not status.available:
             note = QLabel(status.spec.notes)
-            note.setStyleSheet("color:#999; font-size:11px; margin-left:22px;")
+            note.setProperty("cssClass", "caption")
+            note.setStyleSheet("margin-left: 20px;")
             layout.addWidget(note)
         return row

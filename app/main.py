@@ -26,6 +26,7 @@ def main() -> int:
         return 1
 
     from app.infrastructure.temp_manager import temp_manager
+    from app.ui import theme
     from app.ui.main_window import MainWindow
 
     # Limpa temporários órfãos de sessões anteriores.
@@ -34,6 +35,7 @@ def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName("AI Knowledge Prep Suite")
     app.setOrganizationName("AIKnowledgePrep")
+    theme.apply_theme(app)
 
     # Permite Ctrl+C encerrar no terminal durante desenvolvimento.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
