@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import uuid
 from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Any, Callable
+from collections.abc import Callable
+from enum import StrEnum
+from typing import Any
 
 from app.jobs.progress import CancelledError, Progress
 
 
-class JobStatus(str, Enum):
+class JobStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCESS = "success"

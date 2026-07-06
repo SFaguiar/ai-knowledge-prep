@@ -14,17 +14,17 @@ import importlib.util
 import shutil
 import subprocess
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 
-class Criticality(str, Enum):
+class Criticality(StrEnum):
     REQUIRED = "Obrigatória"
     RECOMMENDED = "Recomendada"
     OPTIONAL = "Opcional"
     EXPERIMENTAL = "Experimental"
 
 
-class DepKind(str, Enum):
+class DepKind(StrEnum):
     PYTHON = "python"
     BINARY = "binary"
     LANGUAGE = "language"  # ex.: pacote de idioma do Tesseract

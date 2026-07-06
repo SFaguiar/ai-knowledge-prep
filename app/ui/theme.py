@@ -71,9 +71,11 @@ def apply_theme(app: QApplication) -> None:
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor(TEXT_ON_ACCENT))
     palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(TEXT_MUTED))
     palette.setColor(QPalette.ColorRole.Link, QColor(ACCENT))
-    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(TEXT_MUTED))
-    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor(TEXT_MUTED))
-    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(TEXT_MUTED))
+    disabled = QPalette.ColorGroup.Disabled
+    muted = QColor(TEXT_MUTED)
+    palette.setColor(disabled, QPalette.ColorRole.Text, muted)
+    palette.setColor(disabled, QPalette.ColorRole.ButtonText, muted)
+    palette.setColor(disabled, QPalette.ColorRole.WindowText, muted)
     app.setPalette(palette)
 
     app.setStyleSheet(STYLESHEET)
@@ -245,6 +247,43 @@ QMessageBox {{
 }}
 QMessageBox QPushButton {{
     min-width: 80px;
+}}
+
+/* --- combobox ------------------------------------------------------------ */
+QComboBox {{
+    background: {BG_ELEVATED};
+    color: {TEXT_PRIMARY};
+    border: 1px solid {BORDER_STRONG};
+    border-radius: 8px;
+    padding: 7px 12px;
+    min-height: 18px;
+}}
+QComboBox:hover {{
+    border-color: {ACCENT};
+}}
+QComboBox:focus {{
+    border-color: {ACCENT};
+}}
+QComboBox::drop-down {{
+    border: none;
+    width: 22px;
+}}
+QComboBox::down-arrow {{
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid {TEXT_SECONDARY};
+    margin-right: 8px;
+}}
+QComboBox QAbstractItemView {{
+    background: {BG_ELEVATED};
+    color: {TEXT_PRIMARY};
+    border: 1px solid {BORDER_STRONG};
+    border-radius: 8px;
+    selection-background-color: {ACCENT_SOFT};
+    selection-color: {TEXT_PRIMARY};
+    outline: none;
+    padding: 4px;
 }}
 
 /* --- barra de progresso --------------------------------------------------- */

@@ -15,21 +15,37 @@ para IA** (NotebookLM, ChatGPT, Claude, Gemini e similares).
 
 ---
 
-## Estado atual (v0.1.0 — primeira entrega)
+## Estado atual (v0.1.0)
 
-Esta entrega corresponde às **Etapas 1 e 2** do roadmap:
+Correspondem às **Etapas 1 a 4** do roadmap:
 
 | Recurso | Status |
 |---|---|
-| Janela principal PySide6 + tela inicial por tarefas | ✅ |
+| Janela principal PySide6 + tela inicial por tarefas (tema escuro) | ✅ |
 | Verificador de dependências (Configurações) | ✅ |
 | **PDF Cleaner** (abrir, miniaturas, selecionar, remover, extrair, girar, juntar, dividir, salvar) | ✅ |
+| **Documento para IA** — PDF/EPUB → Markdown/TXT, com fonte completa, capítulos/partes, índice | ✅ |
+| Backends de extração intercambiáveis (PyMuPDF4LLM, PyMuPDF fallback, EPUB) | ✅ |
+| Presets de exportação (NotebookLM, Obsidian, LLM genérico) | ✅ |
 | Preservação do arquivo original + `manifest.json` + log | ✅ |
 | Jobs em background (UI não trava) | ✅ |
-| Documento para IA / OCR / Transcrição / Lote / Histórico | 🚧 planejado (Etapas 3–9) |
+| OCR / Transcrição / Lote / Histórico | 🚧 planejado (Etapas 5–9) |
 
-A arquitetura já contempla os módulos futuros (backends de extração e transcrição,
-presets, pacotes para IA), com interfaces claras e *stubs* onde apropriado.
+A arquitetura já contempla os módulos futuros (OCR, transcrição, pacotes para IA),
+com interfaces claras e *stubs* onde apropriado.
+
+### Documento para IA (Etapas 3–4)
+
+Converte **PDF com texto nativo** e **EPUB** em Markdown/TXT, gerando um pacote
+organizado com `fonte_completa`, `capitulos/` ou `partes/` (conforme o preset),
+`indice.md` e `manifest.json`. O backend é escolhido automaticamente pelo tipo de
+arquivo — se `pymupdf4llm` não estiver instalado, o PDF ainda é convertido com a
+extração básica do PyMuPDF (dependência obrigatória). Para EPUB e para Markdown de
+PDF mais estruturado, instale o grupo opcional `docs`:
+
+```powershell
+uv sync --extra docs      # ou:  pip install -e ".[docs]"
+```
 
 ---
 

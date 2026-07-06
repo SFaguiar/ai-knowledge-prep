@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 
-class SourceType(str, Enum):
+class SourceType(StrEnum):
     PDF = "pdf"
     EPUB = "epub"
     IMAGE = "image"
@@ -50,7 +50,7 @@ class SourceDocument:
     source_type: SourceType
 
     @classmethod
-    def from_path(cls, path: str | Path) -> "SourceDocument":
+    def from_path(cls, path: str | Path) -> SourceDocument:
         p = Path(path)
         stype = _EXT_MAP.get(p.suffix.lower(), SourceType.UNKNOWN)
         return cls(path=p, source_type=stype)

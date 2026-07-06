@@ -64,13 +64,19 @@ class BackendRegistry:
 def build_default_registry() -> BackendRegistry:
     """Monta o registro na ordem de preferência do MVP.
 
-    Ordem de preferência para PDF: PyMuPDF4LLM (rápido) → outros quando
-    implementados. Backends ausentes simplesmente reportam is_available()=False.
+    Ordem para PDF: PyMuPDF4LLM (Markdown estruturado, se instalado) →
+    PyMuPDF puro (texto básico, sempre disponível). Para EPUB: EpubBackend.
+    `select_auto` escolhe o primeiro backend disponível que aceita o arquivo,
+    então o fallback só entra quando o preferido está ausente.
     """
+    from app.backends.documents.epub_backend import EpubBackend
     from app.backends.documents.pymupdf4llm_backend import PyMuPDF4LLMBackend
+    from app.backends.documents.pymupdf_backend import PyMuPDFBackend
 
     registry = BackendRegistry()
-    registry.register(PyMuPDF4LLMBackend())
+    registry.register(PyMuPDF4LLMBackend())  # PDF preferido
+    registry.register(PyMuPDFBackend())      # PDF fallback (sempre disponível)
+    registry.register(EpubBackend())         # EPUB
     # Etapa 8: registrar aqui, na ordem de preferência, os backends já
     # esboçados neste pacote (DoclingBackend, MarkItDownBackend,
     # MarkerBackend, MinerUBackend) quando a extração deles for ativada.

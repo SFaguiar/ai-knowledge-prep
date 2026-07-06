@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.infrastructure.paths import database_path
@@ -44,7 +44,7 @@ def record_operation(job_type: str, source_file: str | None, outputs: list[str],
                 "(created_at, job_type, source_file, outputs_json, status, detail) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
                 (
-                    datetime.now(timezone.utc).isoformat(),
+                    datetime.now(UTC).isoformat(),
                     job_type,
                     source_file,
                     json.dumps(outputs, ensure_ascii=False),

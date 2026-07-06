@@ -30,7 +30,7 @@ class PageRef:
     source_index: int  # índice 0-based na origem
     rotation: int = 0
 
-    def with_rotation(self, delta: int) -> "PageRef":
+    def with_rotation(self, delta: int) -> PageRef:
         return PageRef(self.source_path, self.source_index, (self.rotation + delta) % 360)
 
 

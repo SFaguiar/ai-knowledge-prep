@@ -20,7 +20,15 @@ from PySide6.QtWidgets import (
 
 from app.services.pdf_render_service import PdfRenderService
 from app.services.pdf_service import PageRef
-from app.ui.theme import ACCENT, ACCENT_SOFT, BG_ELEVATED, BG_ELEVATED_HOVER, BORDER, TEXT_MUTED, TEXT_SECONDARY
+from app.ui.theme import (
+    ACCENT,
+    ACCENT_SOFT,
+    BG_ELEVATED,
+    BG_ELEVATED_HOVER,
+    BORDER,
+    TEXT_MUTED,
+    TEXT_SECONDARY,
+)
 
 _COLUMNS = 4
 _THUMB_DIM = 200

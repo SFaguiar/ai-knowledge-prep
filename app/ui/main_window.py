@@ -114,7 +114,10 @@ class MainWindow(QMainWindow):
             render_service=self.render_service,
             settings=self.settings,
         )
-        document_prep = DocumentPrepView()
+        document_prep = DocumentPrepView(
+            job_manager=self.job_manager,
+            settings=self.settings,
+        )
         ocr = OcrView()
         transcription = TranscriptionView()
         batch = BatchView()
