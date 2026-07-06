@@ -197,6 +197,13 @@ QPushButton[cssClass="danger"]:hover {{
     background: {DANGER};
     color: {TEXT_ON_ACCENT};
 }}
+/* Botões compactos (só ícone/glyph), ex.: zoom +/−, navegação ‹ ›.
+   Padding pequeno para o glyph não ser cortado em larguras fixas estreitas. */
+QPushButton[cssClass="icon"] {{
+    padding: 6px 8px;
+    min-width: 18px;
+    font-size: 15px;
+}}
 
 /* --- navegação lateral --------------------------------------------------- */
 QListWidget#nav {{

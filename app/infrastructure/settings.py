@@ -26,6 +26,8 @@ class Settings:
     # Nunca alterar sem consentimento explícito do usuário.
     telemetry_enabled: bool = False
     theme: str = "system"
+    # Tamanhos [trilha, preview] do divisor do PDF Cleaner (px). Vazio = padrão.
+    pdf_cleaner_split_sizes: list[int] = field(default_factory=list)
     extra: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
