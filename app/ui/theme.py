@@ -205,12 +205,27 @@ QPushButton[cssClass="icon"] {{
     font-size: 15px;
 }}
 
-/* --- navegação lateral --------------------------------------------------- */
-QListWidget#nav {{
+/* --- barra lateral / navegação ------------------------------------------- */
+QWidget#sidebar {{
     background: {BG_APP};
-    border: none;
     border-right: 1px solid {BORDER};
-    padding: 10px 8px;
+}}
+QPushButton#sidebarToggle {{
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: {TEXT_SECONDARY};
+    font-size: 17px;
+    padding: 0;
+}}
+QPushButton#sidebarToggle:hover {{
+    background: {BG_ELEVATED};
+    color: {TEXT_PRIMARY};
+}}
+QListWidget#nav {{
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
     font-size: 14px;
     outline: 0;
 }}
