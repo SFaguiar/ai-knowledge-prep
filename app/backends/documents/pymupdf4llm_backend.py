@@ -7,12 +7,20 @@ Saída Markdown ideal para o "modo rápido". Fica disponível apenas se o pacote
 from __future__ import annotations
 
 import importlib.util
+import re
 from pathlib import Path
 
 from app.backends.documents.base import DocumentExtractionBackend
 from app.models.extraction_options import ExtractionOptions, OutputFormat
 from app.models.extraction_result import ExtractionResult, ExtractionSection
 from app.services.markdown_service import markdown_to_plain
+
+# Blocos que o pymupdf4llm emite com o texto extraído de dentro de imagens.
+# Em PDFs de slides isso vira ruído (fragmentos embaralhados de decoração).
+_PICTURE_TEXT = re.compile(
+    r"(<!--|-{2,}) Start of picture text.*?End of picture text (-->|-{2,})\s*",
+    re.DOTALL,
+)
 
 
 class PyMuPDF4LLMBackend(DocumentExtractionBackend):
@@ -28,13 +36,27 @@ class PyMuPDF4LLMBackend(DocumentExtractionBackend):
     def extract(self, file_path: Path, options: ExtractionOptions) -> ExtractionResult:
         import pymupdf4llm  # import tardio — só quando realmente usado
 
-        # to_markdown retorna Markdown; page_chunks permite rastreabilidade por página.
-        chunks = pymupdf4llm.to_markdown(str(file_path), page_chunks=True)
+        # page_chunks permite rastreabilidade por página. Quando o usuário quer
+        # reduzir ruído (padrão), desligamos o OCR automático de imagens
+        # (use_ocr=False) — no pymupdf4llm 1.28 ele vem LIGADO e OCRiza gráficos
+        # decorativos de slides, gerando fragmentos embaralhados. O texto nativo
+        # do PDF é preservado; os blocos "picture text" residuais são removidos
+        # em seguida por _strip_picture_text.
+        kwargs: dict = {"page_chunks": True}
+        if options.reduce_image_noise:
+            kwargs["use_ocr"] = False
+        try:
+            chunks = pymupdf4llm.to_markdown(str(file_path), **kwargs)
+        except TypeError:
+            # Versão antiga do pymupdf4llm sem esses parâmetros: degrada para o básico.
+            chunks = pymupdf4llm.to_markdown(str(file_path), page_chunks=True)
 
         sections: list[ExtractionSection] = []
         parts: list[str] = []
         for chunk in chunks:
             text = chunk.get("text", "") if isinstance(chunk, dict) else str(chunk)
+            if options.reduce_image_noise:
+                text = _PICTURE_TEXT.sub("", text)
             page_no = (
                 chunk.get("metadata", {}).get("page")
                 if isinstance(chunk, dict)

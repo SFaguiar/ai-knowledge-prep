@@ -8,8 +8,10 @@ backend necessário não está disponível.
 
 from __future__ import annotations
 
+import ctypes
+import sys
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from app.backends.documents.base import (
@@ -26,6 +28,82 @@ from app.presets.base import ExportPreset
 from app.services import export_service, manifest_service
 
 logger = get_logger(__name__)
+
+# Pastas de sincronização em nuvem: converter direto delas pode ler um arquivo
+# ainda não baixado por completo (foi o que corrompeu uma conversão real).
+_CLOUD_MARKERS = (
+    "proton drive", "onedrive", "google drive", "googledrive", "dropbox",
+    "icloud", "nextcloud", "mega", "pcloud",
+)
+
+
+@dataclass
+class SourceInspection:
+    """Resultado da inspeção prévia de um arquivo de origem."""
+    page_count: int | None = None
+    warnings: list[str] = field(default_factory=list)
+
+
+def _is_cloud_placeholder(path: Path) -> bool:
+    """True se o arquivo é um placeholder de nuvem ainda não materializado (Windows)."""
+    if not sys.platform.startswith("win"):
+        return False
+    offline = 0x1000
+    recall_data = 0x400000
+    recall_open = 0x40000
+    invalid = 0xFFFFFFFF
+    try:
+        attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
+    except Exception:  # noqa: BLE001 - API indisponível: sem alerta
+        return False
+    if attrs == invalid:
+        return False
+    return bool(attrs & (offline | recall_data | recall_open))
+
+
+def _looks_cloud_synced(path: Path) -> bool:
+    lowered = str(path).lower()
+    return any(marker in lowered for marker in _CLOUD_MARKERS)
+
+
+def inspect_source(path: str | Path) -> SourceInspection:
+    """Inspeciona a origem antes de converter: contagem de páginas e avisos de
+    risco (placeholder de nuvem, PDF reparado/incompleto). Não bloqueia nada —
+    apenas dá visibilidade para o usuário notar problemas como um arquivo parcial.
+    """
+    p = Path(path)
+    warnings: list[str] = []
+
+    if _is_cloud_placeholder(p):
+        warnings.append(
+            "Este arquivo parece ser um placeholder de nuvem ainda NÃO baixado "
+            "por completo. Converter agora pode ler um arquivo parcial. Garanta "
+            "que ele esteja 100% baixado ('sempre manter neste dispositivo') ou "
+            "copie-o para uma pasta local antes."
+        )
+    elif _looks_cloud_synced(p):
+        warnings.append(
+            "Este arquivo está numa pasta de sincronização em nuvem. Confirme "
+            "que ele está totalmente baixado; se a saída vier incompleta, "
+            "converta a partir de uma cópia local."
+        )
+
+    page_count: int | None = None
+    if SourceDocument.from_path(p).source_type == SourceType.PDF:
+        try:
+            import fitz
+
+            with fitz.open(str(p)) as pdf:
+                page_count = pdf.page_count
+                if getattr(pdf, "is_repaired", False):
+                    warnings.append(
+                        "O PDF precisou ser reparado ao abrir — pode estar "
+                        "corrompido ou incompleto. Confira a contagem de páginas."
+                    )
+        except Exception as exc:  # noqa: BLE001
+            warnings.append(f"Não foi possível inspecionar o PDF: {exc}")
+
+    return SourceInspection(page_count=page_count, warnings=warnings)
 
 # Perfil padrão quando o usuário não escolhe um preset: arquivo único + manifest.
 DEFAULT_PROFILE = ExportPreset(
@@ -132,5 +210,10 @@ def convert_document(
         profile=profile,
         source_entry=_source_entry(path, doc, backend),
     )
+    # Avisos da inspeção (placeholder de nuvem, PDF reparado) vão junto do
+    # resultado para o usuário ver no log da conversão.
+    inspection = inspect_source(path)
+    if inspection.warnings:
+        conversion.warnings = [*inspection.warnings, *conversion.warnings]
     report(1.0, "Concluído.")
     return conversion

@@ -9,9 +9,44 @@ import pytest
 
 from app.backends.documents.base import build_default_registry
 from app.backends.documents.pymupdf_backend import PyMuPDFBackend
-from app.models.extraction_options import OutputFormat
+from app.models.extraction_options import ExtractionOptions, OutputFormat
 from app.presets import NOTEBOOKLM
 from app.services import document_prep_service
+
+
+def test_reduce_image_noise_on_by_default() -> None:
+    assert ExtractionOptions().reduce_image_noise is True
+
+
+def test_picture_text_regex_strips_noise_blocks() -> None:
+    from app.backends.documents.pymupdf4llm_backend import _PICTURE_TEXT
+
+    md = (
+        "Texto real antes.\n\n"
+        "<!-- Start of picture text -->\nS fo<br>~ fo<br>\n<!-- End of picture text -->\n\n"
+        "Texto real depois."
+    )
+    cleaned = _PICTURE_TEXT.sub("", md)
+    assert "picture text" not in cleaned
+    assert "S fo" not in cleaned
+    assert "Texto real antes." in cleaned
+    assert "Texto real depois." in cleaned
+
+
+def test_inspect_source_reports_pages_and_no_false_warnings(sample_pdf: Path) -> None:
+    inspection = document_prep_service.inspect_source(sample_pdf)
+    assert inspection.page_count == 5
+    # Arquivo local normal (tmp): sem avisos de nuvem/reparo.
+    assert inspection.warnings == []
+
+
+def test_inspect_source_warns_on_cloud_path(tmp_path: Path, monkeypatch) -> None:
+    # Simula caminho em pasta de nuvem sem precisar de arquivo real lá.
+    fake = tmp_path / "OneDrive" / "livro.pdf"
+    fake.parent.mkdir()
+    fake.write_bytes(b"%PDF-1.7\n%%EOF\n")
+    inspection = document_prep_service.inspect_source(fake)
+    assert any("nuvem" in w.lower() for w in inspection.warnings)
 
 
 def test_registry_registers_pdf_and_epub_backends() -> None:

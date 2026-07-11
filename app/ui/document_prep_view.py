@@ -176,8 +176,17 @@ class DocumentPrepView(QWidget):
             note = ""
             if backend.name == "pymupdf":
                 note = "  (extração básica — instale 'pymupdf4llm' para Markdown estruturado)"
-            self.info.setText(f"{path.name}  ·  backend: {backend.name}{note}")
-            self._log(f"Aberto: {path.name} (backend selecionado: {backend.name})")
+            # Inspeção prévia: contagem de páginas (denuncia arquivo parcial) e
+            # avisos (placeholder de nuvem, PDF reparado).
+            inspection = document_prep_service.inspect_source(path)
+            pages = (f"  ·  {inspection.page_count} páginas"
+                     if inspection.page_count is not None else "")
+            self.info.setText(f"{path.name}{pages}  ·  backend: {backend.name}{note}")
+            self._log(f"Aberto: {path.name} (backend: {backend.name}"
+                      + (f", {inspection.page_count} páginas" if inspection.page_count else "")
+                      + ")")
+            for warning in inspection.warnings:
+                self._log(f"⚠ {warning}")
         self._update_actions()
 
     # --- conversão (job) ---

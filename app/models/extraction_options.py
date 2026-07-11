@@ -27,3 +27,8 @@ class ExtractionOptions:
     language: str = "pt"
     # Um arquivo por capítulo/seção quando aplicável (EPUB, etc.).
     split_by_chapter: bool = False
+    # Suprimir o texto extraído de dentro de imagens/gráficos (ruído comum em
+    # PDFs de slides: fragmentos embaralhados, blocos "picture text"). Ligado por
+    # padrão porque quase sempre o objetivo é prosa limpa para IA. O conteúdo
+    # visual de diagramas/mapas mentais não é recuperado — isso é papel do OCR.
+    reduce_image_noise: bool = True
