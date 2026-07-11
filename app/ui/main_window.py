@@ -151,7 +151,10 @@ class MainWindow(QMainWindow):
             job_manager=self.job_manager,
             settings=self.settings,
         )
-        ocr = OcrView()
+        ocr = OcrView(
+            job_manager=self.job_manager,
+            settings=self.settings,
+        )
         transcription = TranscriptionView()
         batch = BatchView()
         history = HistoryView()

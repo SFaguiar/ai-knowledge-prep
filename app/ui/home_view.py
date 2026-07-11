@@ -29,7 +29,7 @@ TASKS = [
      "Converter PDF/EPUB para Markdown, TXT e pacotes organizados para LLMs.",
      "document_prep", True),
     ("🔎", "OCR", "Transformar PDF escaneado ou imagem em texto e PDF pesquisável.",
-     "ocr", False),
+     "ocr", True),
     ("🎙️", "Transcrever áudio/vídeo", "Gerar texto limpo a partir de áudio ou vídeo.",
      "transcription", False),
     ("📚", "Lote", "Aplicar operações a vários arquivos.", "batch", False),

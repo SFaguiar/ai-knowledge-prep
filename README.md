@@ -17,7 +17,7 @@ para IA** (NotebookLM, ChatGPT, Claude, Gemini e similares).
 
 ## Estado atual (v0.1.0)
 
-Correspondem às **Etapas 1 a 4** do roadmap:
+Correspondem às **Etapas 1 a 5** do roadmap:
 
 | Recurso | Status |
 |---|---|
@@ -25,13 +25,14 @@ Correspondem às **Etapas 1 a 4** do roadmap:
 | Verificador de dependências (Configurações) | ✅ |
 | **PDF Cleaner** (abrir, miniaturas, selecionar, remover, extrair, girar, juntar, dividir, salvar) | ✅ |
 | **Documento para IA** — PDF/EPUB → Markdown/TXT, com fonte completa, capítulos/partes, índice | ✅ |
+| **OCR** — PDF escaneado/imagem → PDF pesquisável + Markdown/TXT | ✅ |
 | Backends de extração intercambiáveis (PyMuPDF4LLM, PyMuPDF fallback, EPUB) | ✅ |
 | Presets de exportação (NotebookLM, Obsidian, LLM genérico) | ✅ |
 | Preservação do arquivo original + `manifest.json` + log | ✅ |
 | Jobs em background (UI não trava) | ✅ |
-| OCR / Transcrição / Lote / Histórico | 🚧 planejado (Etapas 5–9) |
+| Transcrição / Lote / Histórico | 🚧 planejado (Etapas 6–9) |
 
-A arquitetura já contempla os módulos futuros (OCR, transcrição, pacotes para IA),
+A arquitetura já contempla os módulos futuros (transcrição, pacotes para IA),
 com interfaces claras e *stubs* onde apropriado.
 
 ### Documento para IA (Etapas 3–4)
@@ -46,6 +47,26 @@ PDF mais estruturado, instale o grupo opcional `docs`:
 ```powershell
 uv sync --extra docs      # ou:  pip install -e ".[docs]"
 ```
+
+### OCR (Etapa 5)
+
+Transforma **PDF escaneado** ou **imagem** (PNG/JPG/TIFF/BMP) em **PDF pesquisável**
+e em Markdown/TXT com o texto reconhecido, usando OCRmyPDF + Tesseract + Ghostscript.
+Detecta automaticamente se um PDF parece escaneado (pouca camada textual); por
+padrão preserva páginas que já têm texto nativo (`skip_text`) — a opção **Forçar
+OCR** reprocessa tudo, útil quando o texto existente está corrompido. Idioma padrão
+**português**, com seleção entre os idiomas instalados no Tesseract.
+
+Requer o pacote Python `ocrmypdf` (grupo opcional `ocr`) **e** os binários externos
+Tesseract e Ghostscript:
+
+```powershell
+uv sync --extra ocr        # ou:  pip install -e ".[ocr]"
+winget install UB-Mannheim.TesseractOCR   # marque o idioma "Portuguese" no instalador
+winget install ArtifexSoftware.GhostScript
+```
+
+Confira o status de cada dependência em **Configurações → Verificar dependências**.
 
 ---
 
@@ -145,6 +166,19 @@ faltam; ele nunca falha silenciosamente.
 
 ---
 
+## Como usar o OCR
+
+1. Clique em **OCR** na tela inicial (ou na barra lateral).
+2. **Abra um PDF escaneado ou uma imagem** (botão ou arraste o arquivo para a janela) —
+   o app avisa se o PDF já parece ter texto nativo ou se faltam dependências.
+3. Escolha **idioma**, **formato** (Markdown/TXT) e **preset** de exportação.
+4. Ajuste as opções se necessário: **Corrigir inclinação**, **Corrigir rotação**,
+   **Forçar OCR** (reprocessa páginas que já têm texto).
+5. **Aplicar OCR e exportar…** gera um **PDF pesquisável** + o texto reconhecido em
+   Markdown/TXT + `manifest.json`, numa pasta organizada (o original é preservado).
+
+---
+
 ## Estrutura do projeto
 
 ```
@@ -152,7 +186,7 @@ app/
   main.py                 # ponto de entrada (python -m app.main)
   ui/                     # PySide6 — uma view por tarefa + componentes
   services/               # lógica sem Qt: pdf, render, manifest, markdown,
-                          # export, e stubs de epub/ocr/transcrição (etapas futuras)
+                          # export, epub, ocr, e stub de transcrição (Etapa 6)
   backends/
     documents/            # motores intercambiáveis: PyMuPDF4LLM (ativo) +
                           # Docling/MarkItDown/Marker/MinerU (interface fixada, Etapa 8)
@@ -191,10 +225,11 @@ uv run ruff check .    # lint
 
 ## Roadmap
 
-- **Etapa 3–4** — Documento para IA (PDF/EPUB → Markdown/TXT, por capítulos, manifest).
-- **Etapa 5** — OCR (OCRmyPDF + Tesseract, PDF pesquisável).
+- ✅ **Etapa 3–4** — Documento para IA (PDF/EPUB → Markdown/TXT, por capítulos, manifest).
+- ✅ **Etapa 5** — OCR (OCRmyPDF + Tesseract, PDF pesquisável).
 - **Etapa 6** — Transcrição (FFmpeg + faster-whisper, TXT/MD/JSON, timestamps).
-- **Etapa 7** — Presets (NotebookLM, Obsidian, LLM genérico, Transcrição para IA).
+- 🟡 **Etapa 7** — Presets (NotebookLM, Obsidian, LLM genérico já existem e são usados no
+  Documento para IA e no OCR; falta o preset de Transcrição para IA, que depende da Etapa 6).
 - **Etapa 8** — Backends opcionais (Docling, MarkItDown, Marker, MinerU) + seleção manual.
 - **Etapa 9** — Lote e histórico.
 

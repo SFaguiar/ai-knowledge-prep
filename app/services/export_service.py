@@ -35,6 +35,7 @@ def export_extraction_package(
     output_dir: str | Path,
     profile: ExportProfile,
     source_entry: manifest_service.SourceFileEntry | None = None,
+    extra_outputs: list[tuple[Path, str]] | None = None,
 ) -> ConversionResult:
     """Exporta um `ExtractionResult` (com seções) como pacote organizado.
 
@@ -43,6 +44,11 @@ def export_extraction_package(
     - `split_max_chars > 0`: divisão do texto completo em `partes/`;
     - caso contrário: apenas o arquivo completo.
     Sempre grava `fonte_completa`, e opcionalmente índice e manifest.
+
+    `extra_outputs` registra arquivos já gravados fora desta função (ex.: o
+    PDF pesquisável gerado pelo OCR) como pares (caminho, tipo) — entram no
+    manifest e no `ConversionResult` junto com os demais, sem serem escritos
+    de novo aqui.
     """
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -63,6 +69,14 @@ def export_extraction_package(
 
     outputs: list[Path] = []
     manifest_outputs: list[manifest_service.OutputEntry] = []
+
+    for extra_path, extra_type in extra_outputs or []:
+        outputs.append(extra_path)
+        try:
+            rel = extra_path.relative_to(out_dir)
+        except ValueError:
+            rel = extra_path.name
+        manifest_outputs.append(manifest_service.OutputEntry(file=str(rel), type=extra_type))
 
     main_file = out_dir / f"fonte_completa{ext}"
     main_file.write_text(full_content, encoding="utf-8")
